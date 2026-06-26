@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800;900&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
   :root{
     --mt:#21C17A;            /* 品牌绿（替代美团黄）*/
@@ -80,7 +81,13 @@
   .menu{padding:14px 16px 150px;}
   .sec-title{font-weight:800;font-size:15px;margin:6px 2px 12px;display:flex;align-items:center;gap:6px;}
   .dish{display:flex;gap:12px;background:var(--card);border-radius:16px;padding:12px;margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,.04);position:relative;}
-  .dish .pic{width:88px;height:88px;border-radius:12px;flex:none;display:flex;align-items:center;justify-content:center;font-size:42px;}
+  .dish.dish-hl{animation:dishhl 1.5s ease;}
+  @keyframes dishhl{0%,100%{box-shadow:0 2px 10px rgba(0,0,0,.04);}25%,55%{box-shadow:0 0 0 3px var(--mt);}}
+  .dish .pic{width:88px;height:88px;border-radius:12px;flex:none;display:flex;align-items:center;justify-content:center;font-size:42px;position:relative;overflow:hidden;}
+  /* 真实图片（加载失败自动回退到 emoji）*/
+  .pic-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+  .banner-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;}
+  .sc-banner .sc-wc{z-index:2;}
   .dish .info{flex:1;min-width:0;}
   .dish .dn{font-weight:800;font-size:16px;}
   .dish .dd{font-size:12px;color:var(--ink3);margin-top:3px;line-height:1.4;}
@@ -157,9 +164,11 @@
 
   /* toast */
   #toast{position:fixed;left:50%;top:64px;transform:translateX(-50%) translateY(-20px);z-index:60;
-    background:var(--red);color:#fff;font-weight:800;font-size:13px;padding:10px 16px;border-radius:24px;
-    box-shadow:0 8px 20px rgba(255,30,50,.4);opacity:0;pointer-events:none;transition:.3s;}
+    background:#2B2B2B;color:#fff;font-weight:800;font-size:13px;padding:10px 16px;border-radius:24px;
+    box-shadow:0 8px 20px rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:.3s;}
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  #toast.t-ok{background:#16A34A;box-shadow:0 8px 20px rgba(22,163,74,.4);}
+  #toast.t-warn{background:var(--red);box-shadow:0 8px 20px rgba(255,30,50,.4);}
 
   /* ---------- 结算页 ---------- */
   .co-body{padding:14px 16px 120px;}
@@ -318,6 +327,35 @@
   .tk-dots{display:flex;justify-content:space-between;font-size:16px;margin:0 4px;}
   .tk-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--ink3);margin-top:4px;padding:0 2px;}
 
+  /* ---------- 月度冲动报告 ---------- */
+  #report{background:#16140f;min-height:100vh;padding:18px 16px 44px;}
+  .rep-card{max-width:382px;margin:0 auto;background:#1c1b17;border-radius:24px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.6);color:#EDE7D6;}
+  .rep-head{background:var(--mt);color:#0e2a1c;padding:22px 22px 20px;}
+  .rep-head .rh-k{font-family:'Archivo','PingFang SC',sans-serif;font-weight:900;font-size:13px;letter-spacing:2px;}
+  .rep-head .rh-month{font-size:12px;font-weight:700;opacity:.7;margin-top:2px;}
+  .rep-head .rh-big{font-family:'Archivo','PingFang SC',sans-serif;font-weight:900;font-size:30px;line-height:1.15;margin-top:12px;}
+  .rep-head .rh-big b{font-size:46px;}
+  .rep-stats{display:flex;border-bottom:1px solid rgba(255,255,255,.08);}
+  .rep-stat{flex:1;text-align:center;padding:16px 6px;border-right:1px solid rgba(255,255,255,.08);}
+  .rep-stat:last-child{border-right:none;}
+  .rep-stat .n{font-family:'Archivo',sans-serif;font-weight:900;font-size:22px;color:var(--mt);}
+  .rep-stat .l{font-size:11px;color:#9c9685;margin-top:3px;}
+  .rep-row{display:flex;align-items:center;gap:14px;padding:16px 22px;border-bottom:1px solid rgba(255,255,255,.06);}
+  .rep-row .rr-ic{font-size:30px;flex:none;width:40px;text-align:center;}
+  .rep-row .rr-t{flex:1;min-width:0;}
+  .rep-row .rr-l{font-size:11px;color:#9c9685;letter-spacing:1px;}
+  .rep-row .rr-v{font-weight:800;font-size:16px;margin-top:2px;color:#fff;}
+  .rep-row .rr-x{font-family:'Archivo',sans-serif;font-weight:900;color:var(--mt);font-size:18px;}
+  .rep-tier{text-align:center;padding:18px;}
+  .rep-tier .rt-badge{display:inline-block;background:#0e0d0b;color:#FFE08A;font-family:'Archivo','PingFang SC',sans-serif;font-weight:900;font-size:15px;padding:7px 18px;border-radius:20px;border:1px solid rgba(255,224,138,.3);}
+  .rep-quote{font-size:13px;line-height:1.7;color:#cfc8b6;text-align:center;padding:0 22px 18px;}
+  .rep-foot{text-align:center;padding:14px;background:#0e0d0b;font-size:11px;letter-spacing:1px;color:#8a836f;}
+  .rep-foot b{font-family:'Archivo',sans-serif;color:#EDE7D6;letter-spacing:3px;}
+  .rep-actions{max-width:382px;margin:16px auto 0;display:flex;flex-direction:column;gap:10px;}
+  .rep-actions button{border:none;border-radius:14px;padding:14px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Archivo','PingFang SC',sans-serif;}
+  .rep-empty{max-width:382px;margin:60px auto;text-align:center;color:#8a836f;font-size:14px;line-height:1.9;}
+  .rep-empty button{margin-top:18px;background:var(--mt);color:#0e2a1c;border:none;border-radius:24px;padding:12px 28px;font-weight:800;cursor:pointer;}
+
   /* ---------- 收据·锐评 ---------- */
   .rc-roast{margin-top:14px;border:1px solid #e6c36b;border-radius:10px;padding:12px 14px;background:rgba(230,195,107,.08);}
   .rc-roast-t{font-family:'Archivo','PingFang SC',sans-serif;font-weight:900;color:#C8302B;font-size:12px;letter-spacing:1px;margin-bottom:6px;}
@@ -439,6 +477,9 @@
   .home-tabs .sep{margin:0 9px;color:rgba(0,0,0,.25);font-size:18px;}
   .home-tabs .tab.off{font-size:19px;color:rgba(0,0,0,.4);}
   .home-tabs .loc2{margin-left:auto;font-size:13px;font-weight:700;color:#1A1A1A;display:flex;align-items:center;gap:2px;max-width:150px;}
+  .lang-toggle{margin-left:auto;display:inline-flex;background:rgba(0,0,0,.12);border-radius:14px;padding:2px;}
+  .lang-btn{font-size:12px;font-weight:800;color:rgba(0,0,0,.5);padding:3px 9px;border-radius:12px;cursor:pointer;}
+  .lang-btn.on{background:#fff;color:#1A1A1A;}
   .home-tabs .ava{width:34px;height:34px;border-radius:50%;background:#16140f;margin-left:8px;position:relative;flex:none;}
   .home-tabs .ava .adot{position:absolute;top:-3px;right:-3px;background:var(--red);color:#fff;font-size:10px;min-width:15px;height:15px;border-radius:8px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--mt);}
   .searchbar{background:#fff;border-radius:22px;display:flex;align-items:center;padding:4px 4px 4px 14px;}
@@ -552,13 +593,15 @@
     <div class="home-top">
       <div class="home-tabs">
         <span class="tab">首页</span><span class="sep">|</span><span class="tab off">自取</span>
-        <span class="loc2">📍 你的胃 ›</span>
+        <span class="lang-toggle">
+          <span class="lang-btn on" data-l="zh" onclick="setLang('zh')">中</span><span class="lang-btn" data-l="en" onclick="setLang('en')">EN</span>
+        </span>
         <span class="ava"><span class="adot">1</span></span>
       </div>
       <div class="searchbar">
         <span class="mag">🔍</span>
-        <input id="homeSearch" placeholder="你现在馋啥？" readonly />
-        <button class="sbtn">搜索</button>
+        <input id="homeSearch" placeholder="你现在馋啥？" enterkeyhint="search" onkeydown="if(event.key==='Enter'){this.blur();craveSearch();}" />
+        <button class="sbtn" onclick="craveSearch()">搜索</button>
       </div>
     </div>
 
@@ -619,13 +662,7 @@
       </div>
     </div>
 
-    <div class="manjian-banner" style="margin:12px 12px 0">
-      <div class="mj-title">🔥 本店满减（可叠加红包+会员）</div>
-      <span class="mj-tag">满20减5</span>
-      <span class="mj-tag">满40减12</span>
-      <span class="mj-tag">满60减20</span>
-      <span class="mj-tag">满30免配送</span>
-    </div>
+    <div class="manjian-banner" id="mjBanner" style="margin:12px 12px 0"></div>
 
     <div class="order-wrap">
       <div class="cat-side" id="catSide"></div>
@@ -697,7 +734,7 @@
     <div class="sheet">
       <div class="pm-head">选择支付方式<div class="pm-sub">实付 <b id="pmAmt">¥0.00</b> · 放心，不会真的扣你钱</div></div>
       <div class="tip-box" id="tipBox">
-        <div class="tip-t">💵 给骑手小费 <small>Add a tip（美区惯例）</small></div>
+        <div class="tip-t">💵 给骑手小费 <small>美区惯例</small></div>
         <div class="tip-row" id="tipRow">
           <button class="tip on" onclick="setTip(20,this)">20%</button>
           <button class="tip" onclick="setTip(25,this)">25%</button>
@@ -822,15 +859,16 @@
         </div>
       </div>
       <div class="rc-note" id="trapBox"></div>
-      <div class="rc-roast"><div class="rc-roast-t">🔪 SPENT 锐评</div><div id="rcRoast"></div></div>
+      <div class="rc-roast"><div class="rc-roast-t">🧠 SPENT 心理侧写</div><div id="rcRoast"></div></div>
       <div class="rc-barcode" id="rcBarcode"></div>
       <div class="rc-foot">SPENT.APP　花掉冲动，不花钱</div>
     </div>
     <div class="twist-actions">
-      <button class="btn-primary" id="againBtn">↻ 再馋一次</button>
+      <button class="btn-primary" onclick="saveReceipt()">📸 保存图片 · 发小红书 / X</button>
+      <button class="btn-ghost" id="againBtn">↻ 再馋一次</button>
       <button class="btn-ghost" id="wallBtn" onclick="openWall()">🏆 收进战利品墙</button>
     </div>
-    <div class="shot-tip">— 长按截图 · 发小红书 / X —</div>
+    <div class="shot-tip">— 也可以长按小票直接截图 —</div>
   </section>
 
   <!-- ===== 我的（战利品墙）===== -->
@@ -858,7 +896,7 @@
     </div>
     <div class="wall-sec"><span>🏅 我的战利品墙</span><span class="clr" id="wallClear">清空</span></div>
     <div class="wall-grid" id="wallGrid"></div>
-    <div class="wall-foot"><button id="wallGo">去逛逛，再馋一次 🍜</button></div>
+    <div class="wall-foot"><button id="wallReport" style="background:#16140f;color:#FFE08A;margin-bottom:10px">📊 生成我的冲动报告</button><button id="wallGo">去逛逛，再馋一次 🍜</button></div>
   </section>
 
   <!-- ===== 订单（拦截史）===== -->
@@ -870,6 +908,16 @@
     </div>
     <div class="ord-tabs"><span class="on">全部</span><span>已拦截</span><span>待评价</span></div>
     <div class="ord-list" id="ordList"></div>
+  </section>
+
+  <!-- ===== 月度冲动报告 ===== -->
+  <section id="report" class="screen">
+    <div class="topbar">
+      <div class="back" id="repBack">‹</div>
+      <div class="title">冲动报告</div>
+      <div class="spent-mark">SPENT</div>
+    </div>
+    <div id="repBody"></div>
   </section>
 
 </div>
@@ -1106,9 +1154,33 @@ const SHOPS = [
 // 全量菜品索引 + 当前店
 const ALLDISHES = {};
 SHOPS.forEach(s=>s.dishes.forEach(d=>ALLDISHES[d.id]=d));
+// ===== 真图试点（占位：LoremFlickr 按关键词取真实照片；加载失败自动回退 emoji）=====
+// 替换为你自己的图片：把图放进 repo（如 pics/xxx.jpg）后，把下面的 URL 换成 'pics/xxx.jpg' 即可。
+const PILOT_IMG = {
+  yexiao:'https://loremflickr.com/400/300/noodle,soup',  lsf:'https://loremflickr.com/200/200/ramen',
+  zhaji:'https://loremflickr.com/400/300/fried,chicken', quan:'https://loremflickr.com/200/200/fried,chicken',
+  shack:'https://loremflickr.com/400/300/burger',        shack_single:'https://loremflickr.com/200/200/cheeseburger',
+  yotea:'https://loremflickr.com/400/300/bubble,tea',    y_jasmine:'https://loremflickr.com/200/200/milk,tea',
+  mexican:'https://loremflickr.com/400/300/tacos',       taco_build:'https://loremflickr.com/200/200/taco',
+};
+SHOPS.forEach(s=>{ if(PILOT_IMG[s.id]) s.img=PILOT_IMG[s.id]; s.dishes.forEach(d=>{ if(PILOT_IMG[d.id]) d.img=PILOT_IMG[d.id]; }); });
 let currentShop = SHOPS[0];
-const MANJIAN = [{t:20,d:5},{t:40,d:12},{t:60,d:20}]; // 满减阶梯
-const FREE_SHIP = 30, SHIP = 5, VIP = 6, START = 20;
+const SHIP = 5, VIP = 6, START = 20;
+// 每店满减按其招牌价位生成（贵店门槛高、减得多）
+function shopManjian(shop){
+  const hot = shop.dishes.find(d=>d.hot) || shop.dishes.reduce((m,d)=>d.price>m.price?d:m, shop.dishes[0]);
+  const a = hot.price, r5=n=>Math.max(5,Math.round(n/5)*5);
+  let t1=r5(a*0.6), t2=Math.max(r5(a*1.1),t1+5), t3=Math.max(r5(a*1.8),t2+5);
+  return { tiers:[
+    {t:t1,d:Math.max(2,Math.round(t1*0.15))},
+    {t:t2,d:Math.max(3,Math.round(t2*0.20))},
+    {t:t3,d:Math.max(5,Math.round(t3*0.27))},
+  ], freeShip:t1 };
+}
+let MANJIAN = shopManjian(SHOPS[0]).tiers;   // 当前店满减阶梯
+let FREE_SHIP = shopManjian(SHOPS[0]).freeShip;
+let SHOP_ANCHOR = 30;     // 当前店招牌价（店铺红包按此定）
+let annivAmt = 0;         // 本次访问的店庆红包（随机）
 
 //============ 状态 ============
 let cart = {};            // lineKey -> {id,name,price,cal,qty,opts}
@@ -1117,6 +1189,105 @@ let hb = 3;               // 红包金额
 const $ = s=>document.querySelector(s);
 const dish = id=>ALLDISHES[id];
 const yuan = n=> (Math.round(n*100)/100).toString();
+
+//============ 中英双语（切到 EN 时翻译界面；菜名/店名保留原样）============
+let LANG = 'zh'; try{ LANG = localStorage.getItem('spent_lang')||'zh'; }catch(e){}
+// 精确词典：中文 → English
+const TR = {
+  '首页':'Home','自取':'Pickup','搜索':'Search','你现在馋啥？':"What are you craving?",
+  '附近商家':'Nearby','特价外卖':'Deals','一键下单':'1-tap order','你的胃':'your stomach',
+  '全部':'All','炸鸡':'Fried Chicken','汉堡':'Burgers','韩式料理':'Korean','日式料理':'Japanese','中餐':'Chinese','墨西哥':'Mexican','烧烤':'BBQ','奶茶':'Bubble Tea','甜品':'Dessert',
+  '堂食店':'Dine-in','无明厨亮灶':'no open kitchen','订单':'Orders','我的':'Me','评分':'Rating','月售':'Sold',
+  'SPENT快送':'SPENT delivery','神券':'Coupon',
+  '夜宵·综合':'Late-night','麻辣烫·串串':'Malatang','炸鸡·汉堡':'Fried Chicken','烧烤·夜啤':'BBQ','奶茶·甜品':'Tea & Dessert','墨西哥·Taco':'Mexican','日料·定食':'Japanese','汉堡·美式':'American','快餐·汉堡':'Fast Food','炸鸡·快餐':'Fried Chicken','韩式·料理':'Korean','铁板烧·自助':'Teppanyaki','居酒屋·烧鸟':'Izakaya',
+  '外送':'Delivery','免起送价':'No minimum','点菜':'Menu','商家':'Store',
+  '预计':'ETA','送达':'','取餐':'Pickup','在路上':'On the way','膨胀红包':'Inflate packet',
+  'SPENT 会员卡':'SPENT Membership','满减红包会员，叠满一身的快感':'Stack every discount for max dopamine','立即入会':'Join',
+  '招牌推荐':'Signature','人气好评':'Popular','人气推荐':'Popular','会员价':'member price','招牌':'TOP','评价':'Reviews','🚶 走去取·省更多':'🚶 walk · save more',
+  '本店满减（可叠加红包+会员）':'Spend-more-save-more (stacks with coupons)','起送':'Min',
+  '加入购物车':'Add to cart','去结算':'Checkout','确认订单':'Confirm Order','选规格':'Options','去凑单 ›':'Add more ›','去凑单':'Add more','为你省下':'You saved','划算！':'sweet!',
+  '选肉':'Meat','加配菜（可多选）':'Toppings (multi)','温度':'Temp','糖度':'Sweetness','加料（可多选）':'Add-ons (multi)','份量':'Size','选口味（可一半一半）':'Flavor (half & half)','加点（海鲜·主食·小菜）':'Extras','加配（可多选）':'Sides (multi)',
+  '海鲜（不限量·可重复选）':'Seafood (unlimited)','牛肉（11选11·可重复选）':'Beef (pick 11)','寿司（5选5·可重复选）':'Sushi (pick 5)','蔬菜（9选9·可重复选）':'Veggies (pick 9)','当日现串鸡肉串（11选4·不可重复）':'Skewers (pick 4)','蔬菜（4选2·不可重复）':'Veggies (pick 2)',
+  '商品小计':'Subtotal','满减优惠':'Spend-save','红包抵扣':'Red packet','会员立减':'Member off','配送费':'Delivery','实付':'You pay','合计':'Total','提交订单':'Place Order','去自取 🚶':'Pick up 🚶',
+  '膨胀红包 🎈':'Inflate packet 🎈','专属红包':'Your red packet','点一下膨胀':'tap to inflate','已抵扣':'applied',
+  '给骑手小费':'Tip the rider','美区惯例':'US custom','已拦截':'Intercepted',
+  '🧧 SPENT 给你发了个红包':'🧧 SPENT sent you a red packet','手气红包 · 点「开」试试':'Lucky packet · tap "Open"',
+  '选择支付方式':'Choose payment','放心，不会真的扣你钱':"don't worry, you won't be charged",'取消':'Cancel',
+  'Visa 信用卡':'Visa Credit','Mastercard':'Mastercard','微信支付':'WeChat Pay',
+  '面容 ID 一扫即付':'Pay with Face ID','余额 ¥∞（演示）':'Balance ¥∞ (demo)',
+  '轻点两下侧边按钮以支付':'Double-click the side button to pay','正在验证面容 ID…':'Verifying Face ID…','完成':'Done','支付中…':'Paying…','支付成功':'Paid','请将卡片靠近感应区…':'Tap your card…','处理中…':'Processing…',
+  '到店自取':'Self Pickup','我去取（走一圈）🚶':'Go get it (take a walk) 🚶','算了，还是外送吧':'never mind, deliver it','你在这':'You','自取柜':'Locker','走着呢…':'walking…',
+  '🛡️ SPENT 拦截成功 · 你省下':'🛡️ INTERCEPTED · You saved',
+  '店铺满减':'Spend-save','店铺专属红包':'Shop red packet','🎁 店铺专属红包':'🎁 Shop red packet','🎉 店庆红包':'🎉 Anniversary packet','免配送费':'Free delivery','🛡️ SPENT 拦截实付':'🛡️ SPENT intercepted','💵 连小费都没给成':"💵 didn't even tip",
+  '门店 STORE':'STORE','时间 TIME':'TIME','配送 TO':'TO','品项 ITEM':'ITEM','金额 AMT':'AMT',
+  '小计 SUBTOTAL':'SUBTOTAL','满减 DISCOUNT':'DISCOUNT','红包+会员 COUPON':'COUPONS','💵 骑手小费 TIP':'💵 TIP','实付 TOTAL':'TOTAL',
+  '冲动已拦截':'CRAVING','本单为你节省 · YOU SAVED':'YOU SAVED','钱包':'Wallet','大卡':'kcal','等待焦虑':'min of anxiety','★ 冲动拦截 · 电子收据 ★':'★ Craving Intercepted · Receipt ★',
+  '🧠 SPENT 心理侧写':'🧠 SPENT Psych Profile','SPENT.APP　花掉冲动，不花钱':'SPENT.APP  spend the urge, not the money',
+  '📸 保存图片 · 发小红书 / X':'📸 Save image · post to X','↻ 再馋一次':'↻ Crave again','🏆 收进战利品墙':'🏆 Add to trophy wall','— 也可以长按小票直接截图 —':'— or long-press the receipt to screenshot —',
+  '我的订单':'My Orders','待评价':'To review','查看收据':'View receipt','再馋一次':'Crave again','已拦截 ✓':'Intercepted ✓','立即下单':'Order now',
+  '拦截大师':'Craving Slayer','青铜馋虫':'Bronze Glutton','白银馋客':'Silver Foodie','黄金自律家':'Gold Disciplined','钻石冷静王':'Diamond Zen King',
+  '累计省下':'Total saved','省下大卡':'kcal saved','省下等待':'wait saved','🏅 我的战利品墙':'🏅 My Trophy Wall','清空':'Clear','去逛逛，再馋一次 🍜':'Browse & crave again 🍜',
+  '每一次馋，都被你花掉了——钱包毫发无伤。':'Every craving — spent, wallet untouched.',
+};
+// 动态模式（带数字/名字）
+const TR_RE = [
+  [/^月售\s*(.+)$/, (_,a)=>'Sold '+a],
+  [/^差\s*¥(.+?)\s*起送$/, (_,a)=>'¥'+a+' to min'],
+  [/^差¥(.+)$/, (_,a)=>'¥'+a+' more'],
+  [/^已优惠\s*¥(.+?)，超划算$/, (_,a)=>'Saved ¥'+a+' 🔥'],
+  [/^满(\d+)减(\d+)$/, (_,a,b)=>'¥'+a+'→-¥'+b],
+  [/^满(\d+)免配送$/, (_,a)=>'Free deliv. ¥'+a],
+  [/^约\s*(\d+)\s*分钟$/, (_,a)=>'~'+a+' min'],
+  [/^(\d+)分钟$/, (_,a)=>a+' min'],
+  [/^📍距你的胃\s*(.+)$/, (_,a)=>'📍 '+a+' to your stomach'],
+  [/^📍\s*(.+?)\s*距你的胃$/, (_,a)=>'📍 '+a+' away'],
+  [/^距你的胃$/, ()=>'to stomach'],
+  [/^最高可用\s*(\d+)\s*元券$/, (_,a)=>'up to ¥'+a+' off'],
+  [/^起送\s*¥(\d+)\s*·\s*配送约¥(\d+)$/, (_,a,b)=>'Min ¥'+a+' · deliv ¥'+b],
+  [/^再点\s*¥(.+?)\s*即享「满(\d+)减(\d+)」$/, (_,a,b,c)=>'¥'+a+' more → ¥'+b+' save ¥'+c],
+  [/^连击\s*×(\d+)(.*)$/, (_,a,b)=>'Combo ×'+a+b],
+  [/^(\d+(?:\.\d+)?)分$/, (_,a)=>a+'★'],
+  [/^加入购物车\s*·\s*¥$/, ()=>'Add to cart · ¥'],
+  [/^差\s*¥(.+)$/, (_,a)=>'¥'+a+' more'],
+];
+function trCore(k){ if(TR[k]!=null) return TR[k]; for(const [re,fn] of TR_RE){ if(re.test(k)) return k.replace(re,fn); } return null; }
+function tr(s){
+  const k=(''+s).trim(); if(!k) return null;
+  let r=trCore(k); if(r!=null) return r;
+  // 剥离前导 emoji/符号（📷🔥🛡️🎁⚡★·… + 空格）再匹配
+  const m=k.match(/^([^一-龥A-Za-z0-9¥]+)(.+)$/);
+  if(m){ r=trCore(m[2].trim()); if(r!=null) return m[1]+r; }
+  return null;
+}
+function i18nApply(root){
+  root = root||$('#app');
+  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null); const ns=[]; let n;
+  while(n=w.nextNode()) ns.push(n);
+  ns.forEach(node=>{
+    if(LANG==='en'){
+      if(node.__en) return;                       // 已翻
+      const t=node.nodeValue, k=t&&t.trim(); if(!k) return;
+      const e=tr(k); if(e!=null && e!==k){ node.__zh=t; node.__en=true; node.nodeValue=t.replace(k,e); }
+    } else if(node.__en){                          // 还原中文
+      node.nodeValue=node.__zh; node.__en=false;
+    }
+  });
+  root.querySelectorAll('input[placeholder]').forEach(el=>{
+    if(LANG==='en'){ if(el.__phEn) return; const e=tr(el.placeholder); if(e!=null){ el.__phZh=el.placeholder; el.__phEn=true; el.placeholder=e; } }
+    else if(el.__phEn){ el.placeholder=el.__phZh; el.__phEn=false; }
+  });
+}
+function setLang(l){
+  LANG=l; try{ localStorage.setItem('spent_lang',l); }catch(e){}
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('on', b.dataset.l===l));
+  // 重渲染当前屏 + 翻译
+  const cur=(document.querySelector('.screen.active')||{}).id;
+  renderHome();
+  if(cur==='shop') renderShop();
+  if(cur==='wall') renderWall();
+  if(cur==='orders') renderOrders();
+  i18nApply();
+}
 
 //============ 首页：分类 + 店铺列表 ============
 // 分类（我们真有的菜系）→ 店铺归类
@@ -1159,7 +1330,7 @@ function renderHome(){
     return `
     <div class="shopcard2" onclick="enterShop('${s.id}')">
       <div class="sc-banner" style="background:${s.g}">
-        <span class="sc-wc">📷 ${s.tag}</span>${s.emoji}
+        <span class="sc-wc">📷 ${s.tag}</span>${s.emoji}${s.img?`<img class="banner-img" src="${s.img}" loading="lazy" onerror="this.remove()">`:''}
       </div>
       <div class="sc-body">
         <div class="sc-row1">
@@ -1189,11 +1360,18 @@ function enterShop(id){
   $('#hbBtn').disabled=false; $('#hbBtn').textContent='膨胀红包 🎈';
   resetFulfill();
   renderShop();
+  annivAmt = Math.random()<0.4 ? Math.max(5, Math.round(SHOP_ANCHOR*0.04)+4) : 0;  // 随机店庆红包
   switchTo('shop'); window.scrollTo(0,0);
   if(Math.random()<0.33) setTimeout(showHbPop,700);   // 随机红包奖励
 }
 function renderShop(){
   const s=currentShop;
+  // 按本店价位生成满减 + 招牌锚点
+  const mj=shopManjian(s); MANJIAN=mj.tiers; FREE_SHIP=mj.freeShip;
+  const hot=s.dishes.find(d=>d.hot)||s.dishes.reduce((m,d)=>d.price>m.price?d:m,s.dishes[0]); SHOP_ANCHOR=hot.price;
+  $('#mjBanner').innerHTML='<div class="mj-title">🔥 '+(LANG==='en'?'Spend more, save more (stacks with coupons)':'本店满减（可叠加红包+会员）')+'</div>'+
+    MANJIAN.map(t=>`<span class="mj-tag">满${t.t}减${t.d}</span>`).join('')+
+    `<span class="mj-tag">满${FREE_SHIP}免配送</span>`;
   $('#shopBanner').style.background=s.g;
   $('#shopBannerEmoji').textContent=s.emoji;
   $('#shLogo').textContent=s.emoji; $('#shLogo').style.background=s.g;
@@ -1232,7 +1410,7 @@ function renderMenu(){
       const priceHtml = d.options ? `<small>¥</small>${yuan(d.price)}<small>起</small>` : `<small>¥</small>${yuan(d.price)}`;
       return `
       <div class="dish" data-id="${d.id}">
-        <div class="pic" style="background:${d.g}">${d.emoji}</div>
+        <div class="pic" style="background:${d.g}">${d.emoji}${d.img?`<img class="pic-img" src="${d.img}" loading="lazy" onerror="this.remove()">`:''}</div>
         <div class="info">
           <div class="dn">${d.name}${d.hot?'<span class="hot">招牌</span>':''}</div>
           <div class="dd">${d.desc}</div>
@@ -1325,6 +1503,7 @@ function refresh(animate){
     btn.classList.remove('disabled'); btn.textContent='去结算';
   }
   updateCoupon(c);
+  i18nApply();
 }
 
 //============ 凑单提示 ============
@@ -1347,8 +1526,15 @@ function flyBadge(){
 
 //============ toast ============
 let toastTimer;
-function toast(msg){
-  const t=$('#toast'); t.innerHTML=msg; t.classList.add('show');
+function toast(msg,type){
+  const t=$('#toast'); const s=''+msg;
+  if(!type){
+    if(/⚠️|差\s*¥|没搜到|失败|太远|只能|先不|不开放|算了|别真的/.test(s)) type='warn';
+    else if(/🎉|🧧|🪙|🏆|🚀|💪|✓|成功|已[加保收膨领]|省更多|到账|划算|解馋|带你去|为你找到|尊贵会员/.test(s)) type='ok';
+    else type='info';
+  }
+  t.classList.remove('t-ok','t-warn','t-info'); t.classList.add('t-'+type);
+  t.innerHTML=msg; i18nApply(t); t.classList.add('show');
   clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),1600);
 }
 // 监测满减达成
@@ -1375,7 +1561,7 @@ function openSpec(id){
   $('#spPic').textContent=specDish.emoji;
   $('#spName').textContent=specDish.name;
   renderSpecBody(); updateSpecPrice();
-  $('#specSheet').classList.add('show');
+  $('#specSheet').classList.add('show'); i18nApply($('#specSheet'));
 }
 function renderSpecBody(){
   $('#spBody').innerHTML = specDish.options.map(g=>`
@@ -1388,6 +1574,7 @@ function renderSpecBody(){
         }).join('')}
       </div>
     </div>`).join('');
+  i18nApply($('#spBody'));
 }
 function pickOpt(gk,cid,multi){
   if(multi){ const arr=specSel[gk]; const i=arr.indexOf(cid); if(i>=0)arr.splice(i,1); else arr.push(cid); }
@@ -1451,7 +1638,7 @@ function renderCheckout(){
   $('#bHb').textContent='-¥'+yuan(c.hbCut);
   $('#bVip').textContent='-¥'+yuan(c.vipCut);
   $('#bShip').textContent = c.ship===0?'¥0':'¥'+yuan(c.ship);
-  $('#bShipNote').textContent = c.ship===0?'(已满'+FREE_SHIP+'免配送)':'';
+  $('#bShipNote').textContent = c.ship===0?(LANG==='en'?'(free over ¥'+FREE_SHIP+')':'(已满'+FREE_SHIP+'免配送)'):'';
   $('#bOld').textContent='¥'+yuan(c.realOld);
   $('#sOld').textContent='¥'+yuan(c.realOld);
   $('#hbAmt').textContent=yuan(hb);
@@ -1561,27 +1748,30 @@ function pay(method){
   ac(); // 用户手势中唤醒音频
   $('#payMethod').classList.remove('show');
   const c=calc(), amt=yuan(c.final+tipAmt), stage=$('#payStage');
+  const PT=h=>{ const el=$('#paTxt'); if(el){ el.innerHTML=h; i18nApply($('#pay')); } };
   $('#pay').classList.add('show');
   if(method==='apple'){
     stage.innerHTML=`<div class="pa-wrap pa-apple"><div class="applogo"> Apple Pay</div>
       <div class="pa-amt">¥${amt}</div><div class="pa-method">SPENT 卡 ···· 8888</div>
       <div class="faceid scan" id="faceid"><span class="eye l"></span><span class="eye r"></span><span class="mouth"></span><span class="scanline"></span><span class="fcheck">✓</span></div>
       <div class="pa-txt2" id="paTxt" style="color:#fff">轻点两下侧边按钮以支付</div></div>`;
-    sndClick();
-    setTimeout(()=>{ $('#paTxt').textContent='正在验证面容 ID…'; },550);
-    setTimeout(()=>{ const f=document.getElementById('faceid'); f.classList.add('done'); f.classList.remove('scan'); $('#paTxt').textContent='完成'; sndApple(); vib([10,40,12]); },1500);
+    i18nApply($('#pay')); sndClick();
+    setTimeout(()=>{ PT('正在验证面容 ID…'); },550);
+    setTimeout(()=>{ const f=document.getElementById('faceid'); f.classList.add('done'); f.classList.remove('scan'); PT('完成'); sndApple(); vib([10,40,12]); },1500);
     setTimeout(endPay,2250);
   } else if(method==='wx'){
     stage.innerHTML=`<div class="pa-wrap"><div class="pa-amt" style="color:#07C160">¥${amt}</div>
       <div class="spinner" style="border-top-color:#07C160;margin:14px auto"></div><div class="pa-txt2" id="paTxt">支付中…</div></div>`;
-    setTimeout(()=>{ const sp=stage.querySelector('.spinner'); if(sp) sp.outerHTML='<div style="font-size:46px;color:#07C160;margin:10px 0">✓</div>'; $('#paTxt').textContent='支付成功'; sndWx(); vib(28); },1200);
+    i18nApply($('#pay'));
+    setTimeout(()=>{ const sp=stage.querySelector('.spinner'); if(sp) sp.outerHTML='<div style="font-size:46px;color:#07C160;margin:10px 0">✓</div>'; PT('支付成功'); sndWx(); vib(28); },1200);
     setTimeout(endPay,1900);
   } else {
     const mc=method==='mc';
     stage.innerHTML=`<div class="pa-wrap"><div class="bankcard ${mc?'mc':''}"><div class="bc-chip"></div><div class="bc-num">···· ···· ···· ${mc?'5454':'8888'}</div><div class="bc-brand">${mc?'Mastercard':'VISA'}</div><div class="bc-wave">))) </div></div>
       <div class="pa-amt">¥${amt}</div><div class="pa-txt2" id="paTxt">请将卡片靠近感应区…</div></div>`;
-    setTimeout(()=>{ $('#paTxt').textContent='处理中 PROCESSING…'; },750);
-    setTimeout(()=>{ $('#paTxt').innerHTML='<b style="color:var(--ok)">已批准 APPROVED ✓</b>'; sndCard(); vib([10,30,10]); },1550);
+    i18nApply($('#pay'));
+    setTimeout(()=>{ PT('处理中…'); },750);
+    setTimeout(()=>{ PT('<b style="color:var(--ok)">'+(LANG==='en'?'APPROVED ✓':'已批准 APPROVED ✓')+'</b>'); sndCard(); vib([10,30,10]); },1550);
     setTimeout(endPay,2250);
   }
 }
@@ -1589,11 +1779,11 @@ function endPay(){ $('#pay').classList.remove('show'); if(fulfill==='pickup') st
 
 //============ 配送追踪（外送）============
 const TRACK=[
-  {p:8,  s:'🧾 订单已送出 · 商家秒接单'},
-  {p:36, s:'🛵 骑手「哈基米」正在赶往商家…'},
-  {p:62, s:'🥡 骑手已取餐 · 一路狂飙中'},
-  {p:88, s:'🛵💨 正在送往「你的胃」…'},
-  {p:100,s:'🤨 骑手到楼下，被你的理智拦下了'},
+  {p:8,  s:'🧾 订单已送出 · 商家秒接单', e:'🧾 Order placed · merchant accepted'},
+  {p:36, s:'🛵 骑手「哈基米」正在赶往商家…', e:'🛵 Rider "Hajimi" heading to the store…'},
+  {p:62, s:'🥡 骑手已取餐 · 一路狂飙中', e:'🥡 Picked up · flooring it'},
+  {p:88, s:'🛵💨 正在送往「你的胃」…', e:'🛵💨 Delivering to "your stomach"…'},
+  {p:100,s:'🤨 骑手到楼下，被你的理智拦下了', e:'🤨 Rider arrived — stopped by your reason'},
 ];
 function runTrack(){
   const now=new Date(), eta=new Date(now.getTime()+25*60000), p=n=>String(n).padStart(2,'0');
@@ -1601,12 +1791,12 @@ function runTrack(){
   $('#track').classList.add('show');
   const mins=[25,18,11,4,0]; let i=0;
   function next(){
-    const t=TRACK[i];
-    $('#tkStage').innerHTML=t.s;
+    const t=TRACK[i]; const en=LANG==='en';
+    $('#tkStage').innerHTML = en?t.e:t.s;
     $('#tkFill').style.width=t.p+'%';
     $('#tkRider').style.left='calc('+t.p+'% - 12px)';
-    $('#tkLeft').textContent = mins[i]>0?('还剩 '+mins[i]+' 分钟'):'就在楼下了…';
-    sndPop();
+    $('#tkLeft').textContent = mins[i]>0?(en?('~'+mins[i]+' min left'):('还剩 '+mins[i]+' 分钟')):(en?'right downstairs…':'就在楼下了…');
+    i18nApply($('#track')); sndPop();
     i++;
     if(i<TRACK.length) setTimeout(next,1750);
     else setTimeout(()=>{ $('#track').classList.remove('show'); runScore(); }, 1900);
@@ -1620,7 +1810,7 @@ function showHbPop(){
   hbBonusAmt=Math.round((Math.random()*5+2)*10)/10;
   $('#hbPopMid').textContent='手气红包 · 点「开」试试';
   $('#hbPopOpen').style.display='';
-  $('#hbPop').classList.add('show');
+  $('#hbPop').classList.add('show'); i18nApply($('#hbPop'));
 }
 function closeHbPop(){ $('#hbPop').classList.remove('show'); }
 $('#hbPopOpen').onclick=function(){
@@ -1634,11 +1824,11 @@ $('#hbPopOpen').onclick=function(){
 //============ 外送 / 自取 ============
 let fulfill='delivery', pickupLoc=null, _lastStep=0;
 const PICKUP_LOCS=[
-  {e:'🧠',name:'前额叶 · 理智总部'},
-  {e:'🌀',name:'大肠小肠 · 情绪进食处理科'},
-  {e:'💓',name:'伏隔核 · 多巴胺回路'},
-  {e:'👅',name:'味蕾记忆区'},
-  {e:'🫃',name:'胃部 · 馋的震中'},
+  {e:'🧠',name:'前额叶 · 理智总部', en:'Prefrontal Cortex · HQ of Reason'},
+  {e:'🌀',name:'大肠小肠 · 情绪进食处理科', en:'Gut · Emotional-Eating Dept.'},
+  {e:'💓',name:'伏隔核 · 多巴胺回路', en:'Nucleus Accumbens · Dopamine Loop'},
+  {e:'👅',name:'味蕾记忆区', en:'Taste-Memory Zone'},
+  {e:'🫃',name:'胃部 · 馋的震中', en:'Stomach · Craving Epicenter'},
 ];
 function updateFulfillLabel(){ const b=$('#submitBtn'); if(b) b.textContent = fulfill==='pickup'?'去自取 🚶':'提交订单'; }
 function resetFulfill(){ fulfill='delivery'; const s=document.querySelectorAll('#seg .s'); if(s[0]){ s[0].classList.add('on'); s[1].classList.remove('on'); } updateFulfillLabel(); }
@@ -1653,18 +1843,21 @@ function closePickup(){ $('#pickup').classList.remove('show'); }
 function startPickup(){
   ac();
   pickupLoc=PICKUP_LOCS[Math.floor(Math.random()*PICKUP_LOCS.length)];
-  const mins=3+Math.floor(Math.random()*6);
-  $('#pkLoc').innerHTML=pickupLoc.e+' '+pickupLoc.name;
+  const mins=3+Math.floor(Math.random()*6); const en=LANG==='en';
+  $('#pkLoc').innerHTML=pickupLoc.e+' '+(en?pickupLoc.en:pickupLoc.name);
   $('#pkDest').textContent='🏪';
-  $('#pkStatus').innerHTML='距自取点 步行约 <b>'+mins+'</b> 分钟';
+  $('#pkStatus').innerHTML = en?('~ <b>'+mins+'</b> min walk to the locker'):('距自取点 步行约 <b>'+mins+'</b> 分钟');
   const w=$('#pkWalker'); w.textContent='🚶'; w.style.bottom='38px';
-  const go=$('#pkGo'); go.disabled=false; go.textContent='我去取（走一圈）🚶';
-  $('#pickup').classList.add('show');
+  const go=$('#pkGo'); go.disabled=false; go.textContent= en?'Go get it (take a walk) 🚶':'我去取（走一圈）🚶';
+  $('#pickup').classList.add('show'); i18nApply($('#pickup'));
 }
 $('#pkGo').onclick=function(){
-  this.disabled=true; this.textContent='走着呢…';
+  const en=LANG==='en';
+  this.disabled=true; this.textContent= en?'walking…':'走着呢…';
   const w=$('#pkWalker'), dur=6200, st=performance.now(), fromB=38, toB=170;
-  const marks=[[0.25,'走着走着…馋意 −20% 🫧'],[0.5,'已走一半…冲动 −50% 💨'],[0.78,'快到了…手不痒了 ✋'],[0.95,'取餐柜就在眼前']];
+  const marks= en
+    ? [[0.25,'walking… craving −20% 🫧'],[0.5,'halfway… urge −50% 💨'],[0.78,'almost there… hands calm ✋'],[0.95,'locker in sight']]
+    : [[0.25,'走着走着…馋意 −20% 🫧'],[0.5,'已走一半…冲动 −50% 💨'],[0.78,'快到了…手不痒了 ✋'],[0.95,'取餐柜就在眼前']];
   let mi=0;
   function step(now){
     const p=Math.min(1,(now-st)/dur);
@@ -1678,7 +1871,7 @@ $('#pkGo').onclick=function(){
 };
 function arrivePickup(){
   $('#pkDest').textContent='🎁'; $('#pkWalker').textContent='🧍';
-  $('#pkStatus').innerHTML='🗄️ 取餐柜打开 —— 取餐成功：<b>你的理智</b> 🧠';
+  $('#pkStatus').innerHTML = LANG==='en'?'🗄️ Locker opens — picked up: <b>your reason</b> 🧠':'🗄️ 取餐柜打开 —— 取餐成功：<b>你的理智</b> 🧠';
   sndApple(); confetti(document.getElementById('pickup')); vib([12,40,12]);
   hb += 5;   // 自取专享红包：走都走了，多省点
   setTimeout(()=>{ $('#pickup').classList.remove('show'); runScore(); }, 2000);
@@ -1694,18 +1887,26 @@ function confetti(host){
 }
 function runScore(){
   const c=calc();
+  // 连击 = 折扣来源个数（每多一种优惠 +1）。新增来源就能解锁更高连击。
+  let intercept=c.final;
   const items=[];
   if(c.mj>0) items.push({n:'店铺满减',v:c.mj});
   if(c.hbCut>0) items.push({n:'红包抵扣',v:c.hbCut});
+  // 🎁 店铺专属红包（从实付里切一块，总额不变）
+  const shopV=Math.min(intercept, Math.max(2, Math.round((SHOP_ANCHOR||30)*0.06)));
+  if(shopV>0){ items.push({n:'🎁 店铺专属红包',v:shopV}); intercept-=shopV; }
+  // 🎉 店庆红包（本次访问随机命中）
+  if(annivAmt>0 && intercept>0){ const a=Math.min(intercept,annivAmt); items.push({n:'🎉 店庆红包',v:a}); intercept-=a; }
   if(c.vipCut>0) items.push({n:'会员立减',v:c.vipCut});
   if(c.ship===0) items.push({n:'免配送费',v:SHIP});
   const hasTip=tipAmt>0;
-  const seq=[...items.map(it=>it.v), c.final, ...(hasTip?[tipAmt]:[])];
+  const seq=[...items.map(it=>it.v), intercept, ...(hasTip?[tipAmt]:[])];
   $('#jpTotal').textContent='¥0'; $('#jpCombo').textContent='';
   $('#jpList').innerHTML = items.map(it=>`<div class="jp-item"><span class="jn">${it.n}</span><span class="jv">+¥${yuan(it.v)}</span></div>`).join('')
-    + `<div class="jp-item big"><span class="jn">🛡️ SPENT 拦截实付</span><span class="jv">+¥${yuan(c.final)}</span></div>`
+    + `<div class="jp-item big"><span class="jn">🛡️ SPENT 拦截实付</span><span class="jv">+¥${yuan(intercept)}</span></div>`
     + (hasTip?`<div class="jp-item"><span class="jn">💵 连小费都没给成</span><span class="jv">+¥${yuan(tipAmt)}</span></div>`:'');
   $('#score').classList.add('show');
+  i18nApply($('#score'));
   const els=[...document.querySelectorAll('#jpList .jp-item')];
   let running=0, combo=0;
   seq.forEach((v,i)=>{
@@ -1713,43 +1914,30 @@ function runScore(){
     setTimeout(()=>{
       combo++; if(els[i]) els[i].classList.add('in');
       running+=v; animateNum2($('#jpTotal'), running, '¥');
-      $('#jpCombo').textContent = combo>1?('连击 ×'+combo+(last?'  💥':'')):'';
+      const fire = combo>=7?'🔥🔥🔥':combo>=4?'🔥🔥':'🔥';
+      $('#jpCombo').textContent = combo>1?(`${fire} `+(LANG==='en'?'Combo':'连击')+` ×${combo}`+(last?'  💥 MAX!':'')):'';
+      i18nApply($('#scoreInner'));
       sndTick(combo,last); shakeEl($('#scoreInner'));
       if(last){ confetti(); vib([18,40,18,40,60]); }
     }, 360 + i*520);
   });
   setTimeout(()=>{ $('#score').classList.remove('show'); buildTwist(); switchTo('twist'); window.scrollTo(0,0); }, 360 + seq.length*520 + 1200);
 }
-//============ 锐评生成 ============
-function roastLine(c, firstName, cal){
-  const hour=new Date().getHours(), pool=[];
-  if(cal>=1000) pool.push(`${cal} 大卡。这一口下去，跑步机都想辞职。`);
-  else if(cal>=600) pool.push(`${cal} 大卡，"明天开始减肥"の第 999 天。`);
-  if(hour>=22||hour<5) pool.push('深夜下单，胃和钱包连夜商量要不要离开你。');
-  if(/奶茶|抹茶|绿茶|乌龙|红茶|波波|拿铁/.test(firstName)) pool.push('又双叒是奶茶。你的胰岛素已读不回。');
-  if(/炸鸡|鸡/.test(firstName)) pool.push('炸鸡一时爽，痘痘两行泪。');
-  if(/taco|墨西哥|burrito/i.test(firstName)) pool.push('吃个 Taco 都要凑满减，对自己是真下得去手。');
-  if(/烤|串|烧烤|羊|生蚝|虾/.test(firstName)) pool.push('烧烤＋这个点，明早的脸会替你买单。');
-  if(c.mj>0) pool.push('为了那点满减，你差点把购物车塞成年货。');
-  const generic=[
-    '你不是饿，是无聊＋手贱＋嘴寂寞，三连。',
-    '点都点了又不付——这波，赢的是 SPENT，输的是你的意志力（褒义）。',
-    '承认吧，你馋的从来不是它，是"下单"那一下的爽。',
-    '钱没花，热量到账，这买卖你说亏不亏？',
-    '你的胃：行行行。你的理智：算了算了。',
-    '这点自控力，建议申报非物质文化遗产。',
-    '深夜的你，是商家做梦都想要的 VIP。',
-    '馋的时候你是诗人，付款前你是怂包，现在你是赢家。',
-    '又是"就看看不下单"的第 N 次现场翻车。',
-    '购物车比你的存款还满，这很难评。',
-    '别人靠努力，你靠忍住——也算一种天赋。',
-    '今天拦下了，明天呢？（小声）',
-    '解锁成就：嘴上说不要，身体很诚实，钱包很硬气。',
-    '这一单的快乐≈已读不回的暧昧：爽，但没结果。',
-    '省下的钱够买教训了，可惜你不长记性。',
-  ];
-  const out=[]; if(pool.length) out.push(pool[0]); out.push(generic[Math.floor(Math.random()*generic.length)]);
-  return out.join(' ');
+//============ 心理侧写：按本单的"选择"给一段毒舌解读（可探索）============
+function psychRead(c, firstName, sig){
+  const en=LANG==='en'; const reads=[];
+  if(sig.noHb) reads.push(en?['"I-don\'t-deserve-it" type · reverse loss aversion',"You won't even claim a free red packet. Others fear losing money; you fear deserving good things. Be a little kinder to yourself."]:['「我不配」型 · 损失厌恶反向操作','连白送的红包都不领。别人的损失厌恶是"省到就是赚到"，你的是"算了我不配"——下次，对自己大方一点。']);
+  if(sig.bigTip) reads.push(en?['People-pleaser alert','30% tip without blinking. In real life too, always paying for everyone else\'s feelings? Save some kindness for yourself.']:['讨好型人格预警','30% 小费给得眼都不眨。现实里是不是也总在替别人的情绪买单？偶尔把善意留给自己。']);
+  if(sig.tip0) reads.push(en?['Ruthlessly rational · or just cheap','Zero tip. Iron boundaries — or just stingy. You know which.']:['极致理性 · 或纯纯抠门','一分小费不给，骑手哈基米的眼神你接住了——边界感拉满，也可能只是抠，自己心里有数。']);
+  if(sig.pickup) reads.push(en?['Doer · break the urge with your body',"You'd rather walk to pick it up. Not lacking willpower — you just needed a reason to move. Keep that trick."]:['行动派 · 用身体打断冲动','宁可走一圈去自取。你不是没自控力，你只是需要一个"动起来"的台阶——这招留着。']);
+  if(sig.bigHb && sig.couTrap) reads.push(en?['"I won the deal" addict',"Packet maxed, discounts stacked, cart padded — you don't crave the food, you crave that 0.5s of \"I scored\"."]:['「算赢了」上瘾型','红包膨到顶、满减叠满、还凑了单——你馋的不是吃的，是"我占到便宜了"那 0.5 秒的多巴胺。']);
+  if(sig.couTrap) reads.push(en?['The merchant\'s favorite "deal-chaser"',"You padded the cart to hit the discount — exactly their plan. You saved less than you over-ordered. Good thing it's ¥0 today."]:['商家最爱的"薅羊毛"型','为了满减把车塞满，正中商家下怀。省的那点远不够多塞的那些——好在这次你 0 元离场。']);
+  if(sig.late) reads.push(en?['Traitor to your circadian rhythm',"Late night = peak emotional eating. Your prefrontal cortex is dozing off. You don't crave the snack, you crave being held."]:['昼夜节律の叛徒','深夜是情绪性进食的高发时段，你的前额叶这会儿正在打瞌睡。馋的不是夜宵，是没被接住的情绪。']);
+  if(/奶茶|抹茶|绿茶|乌龙|红茶|波波|拿铁/.test(firstName)) reads.push(en?['Sugar = fastest comfort · emotional substitute',"Bubble tea again. Sugar is the fastest dopamine, and the shortest. You never wanted sweet — you wanted soothing."]:['糖 = 最快的安慰 · 情绪代偿','又是奶茶。糖给的是最快的多巴胺，也是最短的——你要的从来不是甜，是被哄。']);
+  if(sig.highCal) reads.push(en?['Instant-gratification high',`${c.cal} kcal of joy for "you now"; the bill was meant for "you tomorrow". No one paid this time — you win.`]:['即时满足上头型',`${c.cal} 大卡的快乐是给"现在的你"的，账单本该留给"明天的你"——这次没人买单，你赚了。`]);
+  reads.push(en?['Impulse observer',"You never craved it — you craved the certainty of \"having it now\". This time you saw through it. Remember this feeling."]:['冲动观察员','你馋的从来不是它，是"马上拥有"那一下的确定感。这次你亲手识破了——记住这种感觉。']);
+  const [label,line]=reads[0];
+  return '<b>🧠 '+(en?'SPENT Psych Profile · ':'')+label+'</b>　'+line;
 }
 
 //============ 构建转折卡（计算数据 + 渲染 + 存快照）============
@@ -1760,12 +1948,16 @@ function buildTwist(){
   const firstName = firstLine?firstLine.name:'宵夜';
   const d=new Date(); const p=n=>String(n).padStart(2,'0');
   const extra = Math.max(0, c.sub - (firstLine?firstLine.price:0));
+  const en=LANG==='en';
   let note;
   if(c.mj>0 && extra>0){
-    const verdict = extra>c.mj ? `为省 ¥${yuan(c.mj)}，差点多花 ¥${yuan(extra)}。` : `刚好卡线省 ¥${yuan(c.mj)}，算你会玩。`;
-    note = `※ 你最先馋的是「${firstName}」。为凑「满${c.tier.t}减${c.tier.d}」又加了 ¥${yuan(extra)} —— ${verdict}好在，这次一分没花。`;
+    const verdict = en ? (extra>c.mj?`To save ¥${yuan(c.mj)}, you almost spent ¥${yuan(extra)} more.`:`Hit the threshold and saved ¥${yuan(c.mj)} — nicely played.`)
+                       : (extra>c.mj?`为省 ¥${yuan(c.mj)}，差点多花 ¥${yuan(extra)}。`:`刚好卡线省 ¥${yuan(c.mj)}，算你会玩。`);
+    note = en ? `※ You first craved "${firstName}". To hit "¥${c.tier.t}→-¥${c.tier.d}" you added ¥${yuan(extra)} more — ${verdict} Luckily, ¥0 this time.`
+              : `※ 你最先馋的是「${firstName}」。为凑「满${c.tier.t}减${c.tier.d}」又加了 ¥${yuan(extra)} —— ${verdict}好在，这次一分没花。`;
   } else {
-    note = `※ 你馋的是「${firstName}」。这一次，馋过了，也就过了。`;
+    note = en ? `※ You craved "${firstName}". This time, the craving passed — and so did the spending.`
+              : `※ 你馋的是「${firstName}」。这一次，馋过了，也就过了。`;
   }
   const data={
     shop: currentShop.name,
@@ -1774,14 +1966,20 @@ function buildTwist(){
     items: Object.values(cart).map(l=>({name:l.name,opts:l.opts,qty:l.qty,price:l.price})),
     sub:c.sub, mj:c.mj, other:c.hbCut+c.vipCut, tip:tipAmt, final:c.final,
     money:c.realOld+tipAmt, cal, timeMin, note,
-    roast: roastLine(c, firstName, cal), seed:d.getTime()
+    roast: psychRead(c, firstName, {
+      noHb: hb<=3, bigHb: hb>=8,
+      tip0: fulfill==='delivery'&&tipAmt===0, bigTip: tipPct>=30,
+      pickup: fulfill==='pickup', late: d.getHours()>=22||d.getHours()<5,
+      highCal: cal>=900, couTrap: c.mj>0&&extra>0
+    }), seed:d.getTime()
   };
   fillReceipt(data, true);
   // 战利品记录（带收据快照，可重看）
   const recs=loadRecs();
   recs.unshift({t:Date.now(), emoji:(firstLine&&firstLine.emoji)||currentShop.emoji, name:firstName, shop:currentShop.name, money:data.money, cal, time:timeMin, receipt:data});
   localStorage.setItem('spent_records', JSON.stringify(recs));
-  $('#wallBtn').textContent=`🏆 收进战利品墙（第 ${recs.length} 次 · 共省 ¥${yuan(recs.reduce((a,r)=>a+r.money,0))}）`;
+  const _tot=yuan(recs.reduce((a,r)=>a+r.money,0));
+  $('#wallBtn').textContent = LANG==='en' ? `🏆 Add to trophy wall (#${recs.length} · saved ¥${_tot})` : `🏆 收进战利品墙（第 ${recs.length} 次 · 共省 ¥${_tot}）`;
 }
 function fillReceipt(data, animate){
   $('#rcShop').textContent=data.shop;
@@ -1799,8 +1997,9 @@ function fillReceipt(data, animate){
   else { $('#sMoney').textContent='¥'+yuan(data.money); $('#sCal').textContent=data.cal; }
   $('#sTime').textContent=data.timeMin+'′';
   $('#trapBox').textContent=data.note;
-  $('#rcRoast').textContent=data.roast;
+  $('#rcRoast').innerHTML=data.roast;
   buildBarcode(data.seed);
+  i18nApply($('#twist'));
 }
 function buildBarcode(seed){
   let s=seed||123456, bars='';
@@ -1888,12 +2087,97 @@ function viewReceipt(i){
   switchTo('twist'); window.scrollTo(0,0);
 }
 function reorder(){ renderHome(); switchTo('home'); window.scrollTo(0,0); }
+
+//============ 收据保存为图片（html2canvas）============
+function saveReceipt(){
+  const card=document.getElementById('shareCard');
+  if(!card) return;
+  if(!window.html2canvas){ toast('长按这张小票即可保存 📸'); return; }
+  toast('生成图片中…');
+  window.html2canvas(card,{backgroundColor:'#16140f',scale:2,useCORS:true,logging:false}).then(canvas=>{
+    canvas.toBlob(function(blob){
+      if(!blob){ toast('长按小票截图也行 📸'); return; }
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a'); a.href=url; a.download='SPENT-收据.png';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),3000);
+      toast('已保存图片，去发小红书 / X 吧 🚀');
+    },'image/png');
+  }).catch(()=>toast('生成失败，长按小票截图也行 📸'));
+}
 $('#ordBack').onclick=()=>{ renderHome(); switchTo('home'); window.scrollTo(0,0); };
+
+//============ 月度冲动报告（可截图分享）============
+function hourBucket(h){
+  if(h>=5&&h<10) return 0; if(h>=10&&h<14) return 1; if(h>=14&&h<17) return 2; if(h>=17&&h<22) return 3; return 4;
+}
+function openReport(){ renderReport(); switchTo('report'); window.scrollTo(0,0); }
+function renderReport(){
+  const en=LANG==='en', recs=loadRecs(), body=$('#repBody');
+  if(!recs.length){
+    body.innerHTML=`<div class="rep-empty">${en?'No intercepts yet —<br>fake-order once to start your report 🍜':'还没有拦截记录～<br>先假装下一单，报告就有内容啦 🍜'}<br><button onclick="reorder()">${en?'Order now':'立即下单'}</button></div>`;
+    return;
+  }
+  const n=recs.length, money=recs.reduce((a,r)=>a+r.money,0), cal=recs.reduce((a,r)=>a+r.cal,0), time=recs.reduce((a,r)=>a+r.time,0);
+  // 最馋的店
+  const sc={}; recs.forEach(r=>sc[r.shop]=(sc[r.shop]||0)+1);
+  const topShop=Object.keys(sc).sort((a,b)=>sc[b]-sc[a])[0]; const topShopN=sc[topShop];
+  const topEmoji=(recs.find(r=>r.shop===topShop)||{}).emoji||'🍽️';
+  // 最危险时段
+  const bk=[0,0,0,0,0]; recs.forEach(r=>bk[hourBucket(new Date(r.t).getHours())]++);
+  const tb=bk.indexOf(Math.max(...bk));
+  const bnZh=['早间','午间','下午','晚间','深夜'], bnEn=['Morning','Noon','Afternoon','Evening','Late night'];
+  const blZh=['一睁眼就馋，元气满满地剁手','午饭点的冲动，准时上线','下午茶时间，嘴又寂寞了','下班即放纵，太经典','深夜放毒，前额叶已下班'];
+  const blEn=['Craving at sunrise — energetic spender','Lunchtime urges, right on schedule','Tea-time, mouth gets lonely again','Off-work = indulge, classic','Late-night demon, prefrontal cortex clocked out'];
+  // 最大一笔
+  const big=recs.reduce((m,r)=>r.money>m.money?r:m, recs[0]);
+  // 段位
+  const tierZh=tierName(n), tierEn=(n>=30?'Diamond Zen King':n>=15?'Gold Disciplined':n>=5?'Silver Foodie':'Bronze Glutton');
+  const d=new Date(); const month=en?d.toLocaleDateString('en-US',{month:'long',year:'numeric'}):(d.getFullYear()+' 年 '+(d.getMonth()+1)+' 月');
+  const quote = en
+    ? `You're not hungry — you crave the certainty of "having it now". ${n} times, you saw through it. Save the urge, not the money.`
+    : `你不是饿，是馋"马上拥有"那一下的确定感。这 ${n} 次，你都识破了——花掉冲动，不花钱。`;
+  body.innerHTML=`
+    <div class="rep-card" id="repCard">
+      <div class="rep-head">
+        <div class="rh-k">🧾 SPENT ${en?'IMPULSE REPORT':'冲动报告'}</div>
+        <div class="rh-month">${month}</div>
+        <div class="rh-big">${en?'You intercepted':'你拦截了'}<br><b>${n}</b> ${en?'cravings':'次冲动'}</div>
+      </div>
+      <div class="rep-stats">
+        <div class="rep-stat"><div class="n">¥${yuan(money)}</div><div class="l">${en?'saved':'省下'}</div></div>
+        <div class="rep-stat"><div class="n">${cal}</div><div class="l">${en?'kcal':'大卡'}</div></div>
+        <div class="rep-stat"><div class="n">${fmtTime(time)}</div><div class="l">${en?'time':'时间'}</div></div>
+      </div>
+      <div class="rep-row"><div class="rr-ic">${topEmoji}</div><div class="rr-t"><div class="rr-l">${en?'MOST-CRAVED SPOT':'最馋的一家'}</div><div class="rr-v">${topShop}</div></div><div class="rr-x">×${topShopN}</div></div>
+      <div class="rep-row"><div class="rr-ic">🕒</div><div class="rr-t"><div class="rr-l">${en?'DANGER HOUR':'最危险的时段'}</div><div class="rr-v">${en?bnEn[tb]:bnZh[tb]}</div></div></div>
+      <div class="rep-row" style="border-bottom:none;font-size:12px;color:#9c9685;padding-top:0;padding-bottom:16px"><div class="rr-ic"></div><div class="rr-t">「${en?blEn[tb]:blZh[tb]}」</div></div>
+      <div class="rep-row"><div class="rr-ic">🏆</div><div class="rr-t"><div class="rr-l">${en?'BIGGEST INTERCEPT':'最大一笔拦截'}</div><div class="rr-v">${big.name}</div></div><div class="rr-x">省¥${yuan(big.money)}</div></div>
+      <div class="rep-tier"><span class="rt-badge">🏅 ${en?'Rank: '+tierEn:'段位 · '+tierZh}　·　${en?'Intercept rate 100% 😎':'拦截成功率 100% 😎'}</span></div>
+      <div class="rep-quote">${quote}</div>
+      <div class="rep-foot"><b>SPENT</b>　${en?'spend the urge, not the money':'花掉冲动，不花钱'}</div>
+    </div>
+    <div class="rep-actions">
+      <button onclick="saveReport()" style="background:var(--mt);color:#fff">📸 ${en?'Save image · post to X':'保存图片 · 发小红书 / X'}</button>
+      <button onclick="reorder()" style="background:rgba(255,255,255,.08);color:#EDE7D6;border:1px solid rgba(255,255,255,.18)">${en?'↻ Crave again':'↻ 再馋一次'}</button>
+    </div>`;
+}
+function saveReport(){
+  const card=document.getElementById('repCard');
+  if(!card||!window.html2canvas){ toast(LANG==='en'?'long-press to screenshot 📸':'长按截图即可 📸'); return; }
+  toast(LANG==='en'?'rendering…':'生成图片中…');
+  window.html2canvas(card,{backgroundColor:'#16140f',scale:2,useCORS:true,logging:false}).then(c=>{
+    c.toBlob(b=>{ if(!b){toast('📸');return;} const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download='SPENT-report.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),3000); toast(LANG==='en'?'Saved! post it 🚀':'已保存，去发吧 🚀'); },'image/png');
+  }).catch(()=>toast('📸'));
+}
+$('#repBack').onclick=()=>{ openWall(); };
+$('#wallReport').onclick=()=>openReport();
 
 //============ 切屏 ============
 function switchTo(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   $('#'+id).classList.add('active');
+  i18nApply();
 }
 
 //============ 让"装饰性"控件也有反馈（演示版引导）============
@@ -1904,9 +2188,9 @@ document.addEventListener('click', function(e){
      t.closest('.cou-wrap') || t.closest('.cartbar') || t.closest('.sheet') ||
      t.closest('.cat-side') || t.closest('.submit-bar') || t.closest('.hongbao') ||
      t.closest('.twist-actions') || t.closest('.back') || t.closest('.wall-foot') ||
-     t.closest('.wall-sec') || t.closest('.cat-card')) return;
-  // 搜索 / 一键下单 → 引导去选店
-  if(t.closest('.searchbar') || t.closest('.nh-1key')){
+     t.closest('.wall-sec') || t.closest('.cat-card') || t.closest('.searchbar') || t.closest('.lang-toggle')) return;
+  // 一键下单 → 引导去选店
+  if(t.closest('.nh-1key')){
     toast('👇 上面选个分类，或直接挑下面的店');
     const near=document.querySelector('.near-head'); if(near) near.scrollIntoView({behavior:'smooth'});
     return;
@@ -1942,13 +2226,46 @@ const SEARCH_HINTS=[
 let _hintI=0;
 function rotateHint(){
   const el=$('#homeSearch'); if(!el) return;
+  if(LANG==='en') return;                                // 英文不滚中文梗
+  if(el===document.activeElement || el.value) return;   // 正在输入时不打扰
   el.style.opacity='0';
-  setTimeout(()=>{ el.placeholder=SEARCH_HINTS[_hintI%SEARCH_HINTS.length]; _hintI++; el.style.opacity='1'; },200);
+  setTimeout(()=>{ if(el.value) return; el.placeholder=SEARCH_HINTS[_hintI%SEARCH_HINTS.length]; _hintI++; el.style.opacity='1'; },200);
 }
 rotateHint(); setInterval(rotateHint,2800);
 
+//============ 真·捕捉馋：搜索带你去对应的店 ============
+function craveSearch(){
+  const el=$('#homeSearch'); const q=(el.value||'').trim();
+  if(!q){ toast('馋点啥都行，打两个字试试 😋'); el.focus(); return; }
+  let hitShop=null, hitDish=null;
+  for(const s of SHOPS){
+    if((s.name.includes(q)||s.tag.includes(q)) && !hitShop) hitShop=s;
+    for(const d of s.dishes){
+      const hay=d.name+' '+(d.desc||'');
+      const inOpt=d.options&&d.options.some(g=>g.choices.some(c=>c.label.includes(q)));
+      if(hay.includes(q)||inOpt){ hitShop=s; hitDish=d; break; }
+    }
+    if(hitDish) break;
+  }
+  el.value=''; el.style.opacity='1';
+  if(!hitShop){
+    hitShop=SHOPS[Math.floor(Math.random()*SHOPS.length)];
+    enterShop(hitShop.id);
+    toast(`「${q}」没搜到，但这家也能解馋 😋`);
+    return;
+  }
+  enterShop(hitShop.id);
+  toast(hitDish?`馋「${q}」？带你去「${hitShop.name}」🍜`:`为你找到「${hitShop.name}」`);
+  if(hitDish) setTimeout(()=>{
+    const dl=document.querySelector('.dish[data-id="'+hitDish.id+'"]');
+    if(dl){ dl.scrollIntoView({behavior:'smooth',block:'center'}); dl.classList.remove('dish-hl'); void dl.offsetWidth; dl.classList.add('dish-hl'); }
+  },380);
+}
+
 //============ init ============
 renderHome();
+document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('on', b.dataset.l===LANG));
+i18nApply();
 </script>
 </body>
 </html>
